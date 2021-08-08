@@ -88,9 +88,14 @@ export default function ChatScreen({route, navigation}: Props) {
   return (
     <>
       {/* TODO: not sure the best way to have the top fill with the correct background... */}
-      <SafeAreaView style={tailwind('flex-none bg-gray-50')}>
-        <ChatHeader conversation={conversation} onPressBack={handlePressBack} />
-      </SafeAreaView>
+      {conversation && (
+        <SafeAreaView style={tailwind('flex-none bg-gray-50')}>
+          <ChatHeader
+            conversation={conversation}
+            onPressBack={handlePressBack}
+          />
+        </SafeAreaView>
+      )}
       <SafeAreaView style={tailwind('flex-1 bg-white')}>
         <View style={tailwind('flex-1')}>
           <SectionList

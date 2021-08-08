@@ -13,7 +13,7 @@ export const ConversationsContext = React.createContext<{
   fetchConversations: (
     query?: Record<string, any>
   ) => Promise<API.ConversationsListResponse>;
-  getConversationById: (id: string) => Conversation;
+  getConversationById: (id: string) => Conversation | null;
   getMessagesByConversationId: (id: string) => Array<Message>;
   markConversationAsRead: (id: string) => void;
   sendNewMessage: (message: Partial<Message>) => void;
@@ -35,7 +35,7 @@ export const ConversationsContext = React.createContext<{
       limit: null,
       total: null,
     }),
-  getConversationById: () => ({} as Conversation),
+  getConversationById: () => null,
   getMessagesByConversationId: () => [],
   markConversationAsRead: () => null,
   sendNewMessage: () => null,
@@ -161,13 +161,15 @@ export class ConversationsProvider extends React.Component<Props, State> {
     return result;
   };
 
-  getConversationById = (conversationId: string): Conversation => {
+  getConversationById = (conversationId: string): Conversation | null => {
     const conversation = this.state.conversationsById[conversationId];
 
     if (!conversation) {
-      throw new Error(
-        `Missing conversation in cache for id: ${conversationId}`
-      );
+      // TODO: figure out the best way to avoid this... probably needs to be
+      // handled on the server where we handle emitting events via channels)
+      console.warn(`Missing conversation in cache for id: ${conversationId}`);
+
+      return null;
     }
 
     return conversation;
@@ -175,15 +177,12 @@ export class ConversationsProvider extends React.Component<Props, State> {
 
   getAllConversations = (): Array<Conversation> => {
     return this.state.conversationIds
-      .map((id) => {
-        const conversation = this.getConversationById(id);
-
-        if (!conversation) {
-          throw new Error(`Missing conversation for id ${id}`);
-        }
-
-        return conversation;
-      })
+      .map((id) => this.getConversationById(id))
+      .filter(
+        (conversation: Conversation | null): conversation is Conversation =>
+          !!conversation
+      )
+      .filter(({messages = []}) => messages && messages.length > 0)
       .sort((a: Conversation, b: Conversation) => {
         const x = a.last_activity_at || a.updated_at;
         const y = b.last_activity_at || b.updated_at;
@@ -196,9 +195,13 @@ export class ConversationsProvider extends React.Component<Props, State> {
     const messages = this.state.messagesByConversationId[conversationId];
 
     if (!messages) {
-      throw new Error(
+      // TODO: figure out the best way to avoid this... probably needs to be
+      // handled on the server where we handle emitting events via channels)
+      console.warn(
         `Missing messages in cache for conversation: ${conversationId}`
       );
+
+      return [];
     }
 
     return messages;
@@ -241,6 +244,10 @@ export class ConversationsProvider extends React.Component<Props, State> {
   ) => {
     const existing = this.getConversationById(conversationId);
 
+    if (!existing) {
+      return this.fetchConversations({status: 'open'});
+    }
+
     this.setState({
       conversationsById: {
         ...this.state.conversationsById,
@@ -251,7 +258,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
       },
     });
 
-    await this.fetchConversations({status: 'open'});
+    return this.fetchConversations({status: 'open'});
   };
 
   markConversationAsRead = (conversationId?: string) => {
