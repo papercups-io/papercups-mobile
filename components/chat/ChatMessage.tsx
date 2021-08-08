@@ -1,0 +1,111 @@
+import * as React from 'react';
+import {View, Text, Image} from 'react-native';
+import tailwind from 'tailwind-rn';
+
+import {Message, User} from '../../types';
+import {getColorByUuid} from '../../utils';
+import {getSenderIdentifier, getSenderProfilePhoto} from './support';
+
+export const EmptyAvatar = ({style = {}}: {style?: any}) => {
+  return (
+    <View
+      style={{
+        ...tailwind(`mr-3 w-8 h-8 rounded-full items-center justify-center`),
+        ...style,
+      }}
+    />
+  );
+};
+
+export const Avatar = ({
+  style = {},
+  message,
+}: {
+  style?: any;
+  message: Message;
+}) => {
+  const {customer_id: customerId} = message;
+  const avatarUrl = getSenderProfilePhoto(message);
+  const color = getColorByUuid(customerId);
+  const display = getSenderIdentifier(message);
+
+  if (avatarUrl) {
+    return (
+      <Image
+        style={{
+          ...tailwind(
+            'mr-3 mb-1 w-8 h-8 rounded-full items-center justify-center'
+          ),
+          ...style,
+        }}
+        source={{
+          uri: avatarUrl,
+        }}
+      />
+    );
+  }
+
+  return (
+    <View
+      style={{
+        ...tailwind(
+          `mr-3 mb-1 w-8 h-8 bg-${color}-500 rounded-full items-center justify-center`
+        ),
+        ...style,
+      }}
+    >
+      <Text style={tailwind('text-white text-base')}>
+        {display.slice(0, 1).toUpperCase()}
+      </Text>
+    </View>
+  );
+};
+
+export const ChatMessage = ({
+  item,
+  currentUser,
+  avatar,
+  label,
+  style = {},
+}: {
+  item: Message;
+  currentUser: User | null;
+  avatar: React.ReactElement;
+  label?: React.ReactElement | null;
+  style?: any;
+}) => {
+  const {body, user_id: userId} = item;
+  const isMe = userId && currentUser?.id == userId;
+
+  if (isMe) {
+    return (
+      <View style={{...tailwind('mb-2 px-4 justify-end'), ...style}}>
+        <View
+          style={tailwind('py-2 px-3 bg-blue-500 ml-6 rounded-lg self-end')}
+        >
+          <Text style={tailwind('text-white text-base')}>{body}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{...tailwind('mb-2 px-4 justify-start'), ...style}}>
+      <View style={tailwind('flex-row items-end')}>
+        {avatar}
+
+        <View style={tailwind('mr-6')}>
+          {label}
+
+          <View
+            style={tailwind('py-2 px-3 bg-gray-100 mr-6 rounded-lg self-start')}
+          >
+            <Text style={tailwind('text-base')}>{body}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default ChatMessage;
