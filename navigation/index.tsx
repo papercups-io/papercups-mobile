@@ -21,7 +21,7 @@ import ConversationsScreen from '../screens/ConversationsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import {useAuth} from '../components/AuthProvider';
 import SocketProvider, {SocketContext} from '../components/SocketProvider';
-import {ConversationsProvider} from '../components/ConversationsProvider';
+import {ConversationsProvider} from '../components/conversations/ConversationsProvider';
 
 export default function Navigation({
   colorScheme,

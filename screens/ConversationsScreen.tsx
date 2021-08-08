@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import tailwind from 'tailwind-rn';
 
-import ConversationItem from '../components/ConversationItem';
 import {RootStackParamList} from '../types';
-import {useConversations} from '../components/ConversationsProvider';
+import ConversationItem from '../components/conversations/ConversationItem';
+import {useConversations} from '../components/conversations/ConversationsProvider';
 
 type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 
@@ -40,8 +40,6 @@ export default function ConversationsScreen({navigation}: Props) {
       />
     );
   };
-
-  console.log('Rendering conversations:', conversations.length);
 
   return (
     <SafeAreaView style={tailwind('h-full bg-white')}>

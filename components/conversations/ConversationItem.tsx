@@ -1,26 +1,9 @@
 import React from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import tailwind from 'tailwind-rn';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 
-import {getColorByUuid} from '../utils';
-
-dayjs.extend(utc);
-
-const formatLastSentAt = (date: string) => {
-  const d = dayjs.utc(date).local();
-  const isSameDay = dayjs.utc(date).isAfter(dayjs().startOf('day'));
-  const isWithinWeek = dayjs().diff(dayjs.utc(date), 'days') < 6;
-
-  if (isSameDay) {
-    return d.format('h:mm a');
-  } else if (isWithinWeek) {
-    return d.format('ddd');
-  } else {
-    return d.format('MMM D');
-  }
-};
+import {getColorByUuid} from '../../utils';
+import {formatLastSentAt} from './support';
 
 type Props = {
   item: any;

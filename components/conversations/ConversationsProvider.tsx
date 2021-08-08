@@ -1,28 +1,9 @@
 import React, {useContext} from 'react';
 import {Channel, Socket} from 'phoenix';
 
-import * as API from '../api';
-import {Conversation, ConversationPagination, Message, User} from '../types';
-
-const mapConversationsById = (conversations: Array<Conversation>) => {
-  return conversations.reduce((acc, conversation) => {
-    const {id} = conversation;
-
-    return {...acc, [id]: conversation};
-  }, {} as {[id: string]: Conversation});
-};
-
-const mapMessagesByConversationId = (conversations: Array<Conversation>) => {
-  return conversations.reduce((acc, {id, messages = []}) => {
-    return {
-      ...acc,
-      // TODO: move sorting logic to server?
-      [id]: messages.sort(
-        (a, b) => +new Date(b.created_at) - +new Date(a.created_at)
-      ),
-    };
-  }, {} as {[id: string]: Array<Message>});
-};
+import * as API from '../../api';
+import {Conversation, ConversationPagination, Message, User} from '../../types';
+import {mapConversationsById, mapMessagesByConversationId} from './support';
 
 export const ConversationsContext = React.createContext<{
   loading?: boolean;
@@ -245,7 +226,6 @@ export class ConversationsProvider extends React.Component<Props, State> {
         [conversationId]: [
           message,
           ...this.getMessagesByConversationId(conversationId),
-          // message,
         ],
       },
     });
