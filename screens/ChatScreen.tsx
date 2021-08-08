@@ -213,15 +213,16 @@ const ChatHeader = ({
     : formatLastActiveAt(lastSeenAt);
 
   return (
-    <View style={tailwind('p-4 flex-row bg-gray-50')}>
+    <View style={tailwind('p-4 flex-row')}>
       <View style={tailwind('flex-row items-center')}>
-        <Icon
-          name="chevron-left"
-          type="feather"
-          color={getColor('blue-500')}
-          style={tailwind('mr-2')}
-          onPress={onPressBack}
-        />
+        <TouchableOpacity style={tailwind('pr-2')} onPress={onPressBack}>
+          <Icon
+            name="chevron-left"
+            type="feather"
+            color={getColor('blue-500')}
+            onPress={onPressBack}
+          />
+        </TouchableOpacity>
 
         {avatarUrl ? (
           <Image
@@ -270,7 +271,7 @@ const ChatFooter = ({
   };
 
   return (
-    <View style={tailwind('p-4 flex-row items-end')}>
+    <View style={tailwind('px-4 pb-4 pt-3 flex-row items-end')}>
       <TextInput
         style={{
           ...tailwind('p-3 rounded-xl border-gray-200 bg-gray-50 flex-1'),
@@ -370,34 +371,39 @@ export default function ChatScreen({route, navigation}: Props) {
   };
 
   return (
-    <SafeAreaView style={tailwind('h-full bg-white')}>
-      <ChatHeader conversation={conversation} onPressBack={handlePressBack} />
+    <>
+      {/* TODO: not sure the best way to have the top fill with the correct background... */}
+      <SafeAreaView style={tailwind('flex-none bg-gray-50')}>
+        <ChatHeader conversation={conversation} onPressBack={handlePressBack} />
+      </SafeAreaView>
+      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+        <View style={tailwind('flex-1')}>
+          <SectionList
+            // style={tailwind('py-3')}
+            contentContainerStyle={tailwind('py-3')}
+            keyboardShouldPersistTaps="never"
+            scrollEventThrottle={16}
+            inverted
+            onEndReached={() => console.log('onEndReached')}
+            onEndReachedThreshold={0.5}
+            onMomentumScrollBegin={() => {
+              console.log('onMomentumScrollBegin');
+            }}
+            sections={sections}
+            keyExtractor={(item, index) => {
+              return item.id;
+            }}
+            renderItem={renderItem}
+            renderSectionFooter={({section: {date}}) => (
+              <View style={tailwind('mt-3 mb-5 items-center')}>
+                <Text style={tailwind('text-gray-500')}>{date}</Text>
+              </View>
+            )}
+          />
+        </View>
 
-      <View style={tailwind('flex-1')}>
-        <SectionList
-          style={tailwind('py-3')}
-          keyboardShouldPersistTaps="never"
-          scrollEventThrottle={16}
-          inverted
-          onEndReached={() => console.log('onEndReached')}
-          onEndReachedThreshold={0.5}
-          onMomentumScrollBegin={() => {
-            console.log('onMomentumScrollBegin');
-          }}
-          sections={sections}
-          keyExtractor={(item, index) => {
-            return item.id;
-          }}
-          renderItem={renderItem}
-          renderSectionFooter={({section: {date}}) => (
-            <View style={tailwind('mt-3 mb-5 items-center')}>
-              <Text style={tailwind('text-gray-500')}>{date}</Text>
-            </View>
-          )}
-        />
-      </View>
-
-      <ChatFooter onSendMessage={handleSendMessage} />
-    </SafeAreaView>
+        <ChatFooter onSendMessage={handleSendMessage} />
+      </SafeAreaView>
+    </>
   );
 }
