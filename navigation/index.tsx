@@ -13,7 +13,6 @@ import * as React from 'react';
 import {ColorSchemeName, KeyboardAvoidingView, Platform} from 'react-native';
 import tailwind from 'tailwind-rn';
 
-import * as API from '../api';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import ChatScreen from '../screens/ChatScreen';
 import {RootStackParamList} from '../types';
@@ -50,10 +49,6 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   const auth = useAuth();
-
-  // React.useEffect(() => {
-  //   auth.logout();
-  // }, []);
 
   if (!auth.isAuthenticated) {
     return (

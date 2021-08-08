@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Channel, Socket} from 'phoenix';
 
 import * as API from '../api';
-import {Conversation, Message, User} from '../types';
+import {Conversation, ConversationPagination, Message, User} from '../types';
 
 const mapConversationsById = (conversations: Array<Conversation>) => {
   return conversations.reduce((acc, conversation) => {
@@ -28,10 +28,11 @@ export const ConversationsContext = React.createContext<{
   loading?: boolean;
   conversations: Array<Conversation>;
   currentUser: User | null;
+  pagination: ConversationPagination;
   fetchConversations: (
     query?: Record<string, any>
   ) => Promise<API.ConversationsListResponse>;
-  getConversationById: (id: string) => Conversation | null;
+  getConversationById: (id: string) => Conversation;
   getMessagesByConversationId: (id: string) => Array<Message>;
   markConversationAsRead: (id: string) => void;
   sendNewMessage: (message: Partial<Message>) => void;
@@ -39,9 +40,21 @@ export const ConversationsContext = React.createContext<{
   loading: false,
   conversations: [],
   currentUser: null,
+  pagination: {
+    previous: null,
+    next: null,
+    limit: null,
+    total: null,
+  },
   fetchConversations: () =>
-    Promise.resolve({data: [], next: null, previous: null}),
-  getConversationById: () => null,
+    Promise.resolve({
+      data: [],
+      next: null,
+      previous: null,
+      limit: null,
+      total: null,
+    }),
+  getConversationById: () => ({} as Conversation),
   getMessagesByConversationId: () => [],
   markConversationAsRead: () => null,
   sendNewMessage: () => null,
@@ -56,7 +69,7 @@ type State = {
   conversationIds: Array<string>;
   conversationsById: {[id: string]: Conversation};
   messagesByConversationId: {[id: string]: Array<Message>};
-  pagination: any;
+  pagination: ConversationPagination;
 };
 
 export class ConversationsProvider extends React.Component<Props, State> {
@@ -71,7 +84,12 @@ export class ConversationsProvider extends React.Component<Props, State> {
       conversationIds: [],
       conversationsById: {},
       messagesByConversationId: {},
-      pagination: {},
+      pagination: {
+        previous: null,
+        next: null,
+        limit: null,
+        total: null,
+      },
     };
   }
 
@@ -138,37 +156,71 @@ export class ConversationsProvider extends React.Component<Props, State> {
   ) => {
     const result = await API.fetchConversations(query);
     const {data: conversations = [], ...pagination} = result;
+    const {
+      conversationIds = [],
+      conversationsById = {},
+      messagesByConversationId = {},
+    } = this.state;
 
     this.setState({
       pagination,
-      conversationIds: conversations.map((c) => c.id),
-      conversationsById: mapConversationsById(conversations),
-      messagesByConversationId: mapMessagesByConversationId(conversations),
+      conversationIds: [
+        ...new Set([...conversationIds, ...conversations.map((c) => c.id)]),
+      ],
+      conversationsById: {
+        ...conversationsById,
+        ...mapConversationsById(conversations),
+      },
+      messagesByConversationId: {
+        ...messagesByConversationId,
+        ...mapMessagesByConversationId(conversations),
+      },
     });
 
     return result;
   };
 
-  getConversationById = (conversationId: string) => {
-    return this.state.conversationsById[conversationId] || null;
+  getConversationById = (conversationId: string): Conversation => {
+    const conversation = this.state.conversationsById[conversationId];
+
+    if (!conversation) {
+      throw new Error(
+        `Missing conversation in cache for id: ${conversationId}`
+      );
+    }
+
+    return conversation;
   };
 
   getAllConversations = (): Array<Conversation> => {
-    const {conversationIds = [], conversationsById = {}} = this.state;
+    return this.state.conversationIds
+      .map((id) => {
+        const conversation = this.getConversationById(id);
 
-    return conversationIds.map((id) => {
-      const conversation = this.getConversationById(id);
+        if (!conversation) {
+          throw new Error(`Missing conversation for id ${id}`);
+        }
 
-      if (!conversation) {
-        throw new Error(`Missing conversation for id ${id}`);
-      }
+        return conversation;
+      })
+      .sort((a: Conversation, b: Conversation) => {
+        const x = a.last_activity_at || a.updated_at;
+        const y = b.last_activity_at || b.updated_at;
 
-      return conversation;
-    });
+        return +new Date(y) - +new Date(x);
+      });
   };
 
   getMessagesByConversationId = (conversationId: string) => {
-    return this.state.messagesByConversationId[conversationId] || [];
+    const messages = this.state.messagesByConversationId[conversationId];
+
+    if (!messages) {
+      throw new Error(
+        `Missing messages in cache for conversation: ${conversationId}`
+      );
+    }
+
+    return messages;
   };
 
   addMessagesByConversationId = (
@@ -193,6 +245,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
         [conversationId]: [
           message,
           ...this.getMessagesByConversationId(conversationId),
+          // message,
         ],
       },
     });
@@ -259,7 +312,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
   };
 
   render() {
-    const {loading, currentUser} = this.state;
+    const {loading, currentUser, pagination} = this.state;
     const conversations = this.getAllConversations();
 
     return (
@@ -268,6 +321,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
           loading,
           currentUser,
           conversations,
+          pagination,
           fetchConversations: this.fetchConversations,
           markConversationAsRead: this.markConversationAsRead,
           getConversationById: this.getConversationById,

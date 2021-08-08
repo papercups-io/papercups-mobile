@@ -157,6 +157,13 @@ export type Attachment = FileUpload;
 
 export type ConversationSource = 'chat' | 'email' | 'slack' | 'sms';
 
+export type ConversationPagination = {
+  next: string | null;
+  previous: string | null;
+  limit: number | null;
+  total: number | null;
+};
+
 export type Conversation = {
   id: string;
   source?: ConversationSource;
@@ -164,7 +171,8 @@ export type Conversation = {
   account_id: string;
   customer_id: string;
   customer: Customer;
-  created_at?: string;
+  created_at: string;
+  updated_at: string;
   last_activity_at?: string;
   date: string;
   preview: string;

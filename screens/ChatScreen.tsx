@@ -8,33 +8,250 @@ import {
   TextInput,
   TouchableOpacity,
   SafeAreaView,
+  StatusBar,
   Image,
 } from 'react-native';
-import tailwind from 'tailwind-rn';
+import tailwind, {getColor} from 'tailwind-rn';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-import {Message, RootStackParamList} from '../types';
+import {
+  Conversation,
+  Customer,
+  Message,
+  RootStackParamList,
+  User,
+} from '../types';
 import {useConversations} from '../components/ConversationsProvider';
+import {
+  getColorByUuid,
+  getSenderIdentifier,
+  getSenderProfilePhoto,
+} from '../utils';
+import {Icon} from 'react-native-elements/dist/icons/Icon';
 
-// TODO: just copy fb messenger UI
-const ChatMessage = ({item, currentUser}: any) => {
-  const {body, customer_id: customerId, user_id: userId} = item;
-  // TODO: user_id needs to match current user id
+dayjs.extend(utc);
+
+const hasSameSender = (a: Message, b: Message) => {
+  if (a.user_id && b.user_id) {
+    return a.user_id === b.user_id;
+  } else if (a.customer_id && b.customer_id) {
+    return a.customer_id === b.customer_id;
+  } else {
+    return false;
+  }
+};
+
+const groupMembersById = (messages: Array<Message>) => {
+  return messages.reduce((acc, message) => {
+    const {user, customer} = message;
+
+    if (user && user.id) {
+      return {...acc, [`user:${user.id}`]: user};
+    } else if (customer && customer.id) {
+      return {...acc, [`customer:${customer.id}`]: customer};
+    } else {
+      return acc;
+    }
+  }, {} as {[id: string]: User | Customer});
+};
+
+const getGroupMembers = (messages: Array<Message>) => {
+  const grouped = groupMembersById(messages);
+
+  return Object.keys(grouped).map((id) => {
+    return grouped[id];
+  });
+};
+
+const groupMessagesByDate = (messages: Array<Message>) => {
+  return messages.reduce((acc, message) => {
+    const {created_at: date} = message;
+    const isToday = dayjs.utc(date).isAfter(dayjs().startOf('day'));
+
+    if (isToday) {
+      return {...acc, Today: (acc['Today'] || []).concat(message)};
+    } else {
+      const key = dayjs.utc(date).local().format('MMM D');
+
+      return {...acc, [key]: (acc[key] || []).concat(message)};
+    }
+  }, {} as {[date: string]: Array<Message>});
+};
+
+const formatLastActiveAt = (date: dayjs.Dayjs) => {
+  const today = dayjs();
+  const yesterday = today.subtract(1, 'day');
+
+  if (date.isAfter(today.startOf('day'))) {
+    return 'Last seen today';
+  } else if (
+    date.isAfter(yesterday.startOf('day')) &&
+    date.isBefore(yesterday.endOf('day'))
+  ) {
+    return 'Last seen yesterday';
+  } else {
+    const hours = today.diff(date, 'hours');
+    const days = Math.floor(hours / 24);
+
+    return `Last seen ${days}d ago`;
+  }
+};
+
+const EmptyAvatar = ({style = {}}: {style?: any}) => {
+  return (
+    <View
+      style={{
+        ...tailwind(`mr-3 w-8 h-8 rounded-full items-center justify-center`),
+        ...style,
+      }}
+    />
+  );
+};
+
+const Avatar = ({style = {}, message}: {style?: any; message: Message}) => {
+  const {customer_id: customerId} = message;
+  const avatarUrl = getSenderProfilePhoto(message);
+  const color = getColorByUuid(customerId);
+  const display = getSenderIdentifier(message);
+
+  if (avatarUrl) {
+    return (
+      <Image
+        style={{
+          ...tailwind(
+            'mr-3 mb-1 w-8 h-8 rounded-full items-center justify-center'
+          ),
+          ...style,
+        }}
+        source={{
+          uri: avatarUrl,
+        }}
+      />
+    );
+  }
+
+  return (
+    <View
+      style={{
+        ...tailwind(
+          `mr-3 mb-1 w-8 h-8 bg-${color}-500 rounded-full items-center justify-center`
+        ),
+        ...style,
+      }}
+    >
+      <Text style={tailwind('text-white text-base')}>
+        {display.slice(0, 1).toUpperCase()}
+      </Text>
+    </View>
+  );
+};
+
+const ChatMessage = ({
+  item,
+  currentUser,
+  avatar,
+  label,
+  style = {},
+}: {
+  item: Message;
+  currentUser: User | null;
+  avatar: React.ReactElement;
+  label?: React.ReactElement | null;
+  style?: any;
+}) => {
+  const {body, user_id: userId} = item;
   const isMe = userId && currentUser?.id == userId;
 
   if (isMe) {
     return (
-      <View style={tailwind('mb-3 px-3 justify-end')}>
-        <View style={tailwind('p-3 bg-blue-400 ml-6 rounded-lg self-end')}>
-          <Text style={tailwind('text-white')}>{body}</Text>
+      <View style={{...tailwind('mb-2 px-4 justify-end'), ...style}}>
+        <View
+          style={tailwind('py-2 px-3 bg-blue-500 ml-6 rounded-lg self-end')}
+        >
+          <Text style={tailwind('text-white text-base')}>{body}</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={tailwind('mb-3 px-3 justify-start')}>
-      <View style={tailwind('p-3 bg-gray-100 mr-6 rounded-lg self-start')}>
-        <Text>{body}</Text>
+    <View style={{...tailwind('mb-2 px-4 justify-start'), ...style}}>
+      <View style={tailwind('flex-row items-end')}>
+        {avatar}
+
+        <View style={tailwind('mr-6')}>
+          {label}
+
+          <View
+            style={tailwind('py-2 px-3 bg-gray-100 mr-6 rounded-lg self-start')}
+          >
+            <Text style={tailwind('text-base')}>{body}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const ChatHeader = ({
+  conversation,
+  onPressBack,
+}: {
+  conversation: Conversation;
+  onPressBack: () => void;
+}) => {
+  const {customer, messages = []} = conversation;
+  const {name, email, id: customerId, profile_photo_url: avatarUrl} = customer;
+  const [message] = messages;
+  const display = name || email || 'Anonymous User';
+  const color = getColorByUuid(customerId);
+  const lastSeenAt = dayjs(customer.last_seen_at);
+  const messageCreatedAt = dayjs.utc(message.created_at).local();
+  const lastActiveAt = messageCreatedAt.isAfter(lastSeenAt)
+    ? formatLastActiveAt(messageCreatedAt)
+    : formatLastActiveAt(lastSeenAt);
+
+  return (
+    <View style={tailwind('p-4 flex-row bg-gray-50')}>
+      <View style={tailwind('flex-row items-center')}>
+        <Icon
+          name="chevron-left"
+          type="feather"
+          color={getColor('blue-500')}
+          style={tailwind('mr-2')}
+          onPress={onPressBack}
+        />
+
+        {avatarUrl ? (
+          <Image
+            style={{
+              ...tailwind(
+                'mr-3 w-10 h-10 rounded-full items-center justify-center'
+              ),
+            }}
+            source={{
+              uri: avatarUrl,
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              ...tailwind(
+                `mr-3 w-10 h-10 bg-${color}-500 rounded-full items-center justify-center`
+              ),
+            }}
+          >
+            <Text style={tailwind('text-white text-base')}>
+              {display.slice(0, 1).toUpperCase()}
+            </Text>
+          </View>
+        )}
+
+        <View>
+          <Text style={tailwind('text-base font-medium')}>{display}</Text>
+          <Text style={tailwind('text-gray-500')}>{lastActiveAt}</Text>
+        </View>
       </View>
     </View>
   );
@@ -84,7 +301,7 @@ const ChatFooter = ({
 
 type Props = StackScreenProps<RootStackParamList, 'Chat'> & {};
 
-export default function ChatScreen({route}: Props) {
+export default function ChatScreen({route, navigation}: Props) {
   const {
     currentUser,
     getConversationById,
@@ -93,7 +310,13 @@ export default function ChatScreen({route}: Props) {
     sendNewMessage,
   } = useConversations();
   const {conversationId} = route.params;
+  const conversation = getConversationById(conversationId);
   const messages = getMessagesByConversationId(conversationId);
+  const members = getGroupMembers(messages);
+  const grouped = groupMessagesByDate(messages);
+  const sections = Object.keys(grouped).map((date) => {
+    return {date, data: grouped[date]};
+  });
 
   React.useEffect(() => {
     const conversation = getConversationById(conversationId);
@@ -112,14 +335,47 @@ export default function ChatScreen({route}: Props) {
     return sendNewMessage({body: message, conversation_id: conversationId});
   };
 
-  const renderItem = ({item}: any) => {
-    return <ChatMessage item={item} currentUser={currentUser} />;
+  const handlePressBack = () => {
+    navigation.navigate('Conversations');
+  };
+
+  const renderItem = ({item, section, index}: any) => {
+    const {data = []} = section;
+    const next = data[index - 1];
+    const prev = data[index + 1];
+    const isPrevFromSameSender = !!prev && hasSameSender(item, prev);
+    const isNextFromSameSender = !!next && hasSameSender(item, next);
+    const isLastInGroup = !isNextFromSameSender;
+    const isGroupChat = members.length > 2;
+
+    return (
+      <ChatMessage
+        item={item}
+        style={tailwind(isLastInGroup ? 'mb-4' : 'mb-2')}
+        currentUser={currentUser}
+        avatar={isLastInGroup ? <Avatar message={item} /> : <EmptyAvatar />}
+        label={
+          !isPrevFromSameSender && isGroupChat ? (
+            <Text
+              style={tailwind(
+                `ml-1 mt-${index === 0 ? 0 : 3} mb-1 text-gray-400 text-xs`
+              )}
+            >
+              {getSenderIdentifier(item)}
+            </Text>
+          ) : null
+        }
+      />
+    );
   };
 
   return (
     <SafeAreaView style={tailwind('h-full bg-white')}>
-      <View style={tailwind('p-3 flex-1')}>
+      <ChatHeader conversation={conversation} onPressBack={handlePressBack} />
+
+      <View style={tailwind('flex-1')}>
         <SectionList
+          style={tailwind('py-3')}
           keyboardShouldPersistTaps="never"
           scrollEventThrottle={16}
           inverted
@@ -128,13 +384,19 @@ export default function ChatScreen({route}: Props) {
           onMomentumScrollBegin={() => {
             console.log('onMomentumScrollBegin');
           }}
-          sections={[{date: 'Today', data: messages}]}
+          sections={sections}
           keyExtractor={(item, index) => {
             return item.id;
           }}
           renderItem={renderItem}
+          renderSectionFooter={({section: {date}}) => (
+            <View style={tailwind('mt-3 mb-5 items-center')}>
+              <Text style={tailwind('text-gray-500')}>{date}</Text>
+            </View>
+          )}
         />
       </View>
+
       <ChatFooter onSendMessage={handleSendMessage} />
     </SafeAreaView>
   );

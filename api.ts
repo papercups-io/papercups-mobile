@@ -5,6 +5,7 @@ import Storage, {AUTH_CACHE_KEY} from './storage';
 import {
   Account,
   Conversation,
+  ConversationPagination,
   Customer,
   CustomerNote,
   Tag,
@@ -300,9 +301,7 @@ export type PaginationOptions = {
 
 export type ConversationsListResponse = {
   data: Array<Conversation>;
-  next: string | null;
-  previous: string | null;
-};
+} & ConversationPagination;
 
 export const countUnreadConversations = async (key?: string): Promise<any> => {
   const token = key || (await getAccessToken());

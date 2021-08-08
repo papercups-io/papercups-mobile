@@ -1,7 +1,26 @@
 import React from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import tailwind from 'tailwind-rn';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
 import {getColorByUuid} from '../utils';
+
+dayjs.extend(utc);
+
+const formatLastSentAt = (date: string) => {
+  const d = dayjs.utc(date).local();
+  const isSameDay = dayjs.utc(date).isAfter(dayjs().startOf('day'));
+  const isWithinWeek = dayjs().diff(dayjs.utc(date), 'days') < 6;
+
+  if (isSameDay) {
+    return d.format('h:mm a');
+  } else if (isWithinWeek) {
+    return d.format('ddd');
+  } else {
+    return d.format('MMM D');
+  }
+};
 
 type Props = {
   item: any;
@@ -14,9 +33,14 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
   const display = name || email || 'Anonymous User';
   // We order messages in reverse, so the latest is first
   const [message] = messages;
-  const body = message.body || '...';
-  // const formatted = body.split('\n').join(' ');
-  const formatted = body; // TODO
+  const {body, created_at: timestamp} = message;
+  const text = body || '...';
+  const lastSentAt = formatLastSentAt(timestamp);
+  const formatted = text
+    .split('\n')
+    .map((str: string) => str.trim())
+    .filter((str: string) => str.length > 0)
+    .join(' ');
   const color = getColorByUuid(customerId);
 
   return (
@@ -54,11 +78,11 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
           <Text
             style={tailwind(read ? 'text-gray-500' : 'text-gray-700 font-bold')}
           >
-            {formatted.length > 50
-              ? formatted.slice(0, 40).concat('...')
+            {formatted.length > 40
+              ? formatted.slice(0, 32).concat('...')
               : formatted}
             {' · '}
-            {'1d'}
+            {lastSentAt}
           </Text>
         </View>
       </View>
