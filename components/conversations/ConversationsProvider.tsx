@@ -1,9 +1,14 @@
 import React, {useContext} from 'react';
 import {Channel, Socket} from 'phoenix';
+import * as Notifications from 'expo-notifications';
 
 import * as API from '../../api';
 import {Conversation, ConversationPagination, Message, User} from '../../types';
 import {mapConversationsById, mapMessagesByConversationId} from './support';
+import {
+  registerForPushNotificationsAsync,
+  sendPushNotification,
+} from '../notifications/support';
 
 export const ConversationsContext = React.createContext<{
   loading?: boolean;
@@ -47,6 +52,7 @@ type Props = {socket: Socket} & React.PropsWithChildren<{}>;
 type State = {
   loading: boolean;
   currentUser: User | null;
+  pushNotificationToken: string | null;
   conversationIds: Array<string>;
   conversationsById: {[id: string]: Conversation};
   messagesByConversationId: {[id: string]: Array<Message>};
@@ -55,6 +61,7 @@ type State = {
 
 export class ConversationsProvider extends React.Component<Props, State> {
   channel: Channel | null = null;
+  subscriptions: Array<any> = [];
 
   constructor(props: Props) {
     super(props);
@@ -62,6 +69,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
     this.state = {
       loading: true,
       currentUser: null,
+      pushNotificationToken: null,
       conversationIds: [],
       conversationsById: {},
       messagesByConversationId: {},
@@ -93,7 +101,45 @@ export class ConversationsProvider extends React.Component<Props, State> {
     this.disconnect();
   }
 
-  connect(accountId: string) {
+  connect = async (accountId: string) => {
+    this.joinNotificationsChannel(accountId);
+
+    await this.registerForPushNotifications();
+  };
+
+  disconnect() {
+    this.leaveNotificationsChannel();
+    this.removePushNotificationListeners();
+  }
+
+  registerForPushNotifications = async () => {
+    const token = await registerForPushNotificationsAsync();
+
+    if (token) {
+      this.setState({pushNotificationToken: token});
+      console.log('Successfully registered push notifications!', token);
+      this.subscriptions = [
+        ...this.subscriptions,
+        // This listener is fired whenever a notification is received while the app is foregrounded
+        Notifications.addNotificationReceivedListener((notification) => {
+          // console.log('addNotificationReceivedListener', notification);
+        }),
+        // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          // console.log('addNotificationResponseReceivedListener', response);
+        }),
+      ];
+    }
+  };
+
+  removePushNotificationListeners = () => {
+    console.log('removePushNotificationListeners');
+    this.subscriptions.forEach((subscription) => {
+      Notifications.removeNotificationSubscription(subscription);
+    });
+  };
+
+  joinNotificationsChannel = (accountId: string) => {
     if (this.channel && this.channel.leave) {
       console.debug(
         'Channel already exists. Leaving channel before connecting',
@@ -124,13 +170,13 @@ export class ConversationsProvider extends React.Component<Props, State> {
         // TODO: double check that this works (retries after 10s)
         setTimeout(() => this.connect(accountId), 10000);
       });
-  }
+  };
 
-  disconnect() {
+  leaveNotificationsChannel = () => {
     if (this.channel && this.channel.leave) {
       this.channel.leave();
     }
-  }
+  };
 
   fetchConversations = async (
     query: Record<string, any> = {status: 'open'}
@@ -220,6 +266,24 @@ export class ConversationsProvider extends React.Component<Props, State> {
     };
   };
 
+  sendNewMessagePushNotification = async (message: Message) => {
+    const {pushNotificationToken} = this.state;
+    console.log('sendNewMessagePushNotification', pushNotificationToken);
+    if (!pushNotificationToken) {
+      return null;
+    }
+
+    const {body, customer_id: customerId} = message;
+
+    if (!!customerId) {
+      return sendPushNotification(pushNotificationToken, {
+        title: 'New message',
+        body,
+        data: message,
+      });
+    }
+  };
+
   handleIncomingMessage = (message: Message) => {
     const {conversation_id: conversationId} = message;
 
@@ -232,6 +296,8 @@ export class ConversationsProvider extends React.Component<Props, State> {
         ],
       },
     });
+
+    return this.sendNewMessagePushNotification(message);
   };
 
   handleNewConversation = async (conversationId: string) => {
