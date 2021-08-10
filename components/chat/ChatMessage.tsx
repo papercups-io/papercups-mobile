@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {View, Text, Image} from 'react-native';
+import {View, Text, Image, Dimensions} from 'react-native';
 import tailwind from 'tailwind-rn';
 
 import {Message, User} from '../../types';
@@ -74,7 +74,7 @@ export const ChatMessage = ({
   label?: React.ReactElement | null;
   style?: any;
 }) => {
-  const {body, user_id: userId} = item;
+  const {body, user_id: userId, attachments = []} = item;
   const isMe = userId && currentUser?.id == userId;
 
   if (isMe) {
@@ -84,6 +84,25 @@ export const ChatMessage = ({
           style={tailwind('py-2 px-3 bg-blue-500 ml-6 rounded-lg self-end')}
         >
           <Text style={tailwind('text-white text-base')}>{body}</Text>
+
+          {attachments.map((attachment) => {
+            const {id, content_type: contentType, file_url: uri} = attachment;
+
+            if (contentType.startsWith('image')) {
+              // TODO: figure out best way to render image attachments
+              return (
+                <Image
+                  key={id}
+                  style={{
+                    ...tailwind('mt-2 bg-gray-100 rounded-lg'),
+                    ...{width: '80%', height: undefined, aspectRatio: 1},
+                  }}
+                  resizeMode="contain"
+                  source={{uri}}
+                ></Image>
+              );
+            }
+          })}
         </View>
       </View>
     );

@@ -50,6 +50,11 @@ const Stack = createStackNavigator<RootStackParamList>();
 function RootNavigator() {
   const auth = useAuth();
 
+  if (auth.loading) {
+    // TODO: fix splash screen
+    return null;
+  }
+
   if (!auth.isAuthenticated) {
     return (
       <Stack.Navigator screenOptions={{headerShown: false}}>

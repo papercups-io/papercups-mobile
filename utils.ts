@@ -1,6 +1,6 @@
-import {Account, Message, Conversation, User} from './types';
-
 export const noop = () => {};
+
+export const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export const getColorByUuid = (uuid?: string | null) => {
   if (!uuid) {

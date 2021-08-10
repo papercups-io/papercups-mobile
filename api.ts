@@ -268,7 +268,7 @@ export const fetchUserSettings = async (key?: string) => {
   }
 
   return request
-    .get('${base}/api/user_settings')
+    .get(`${base}/api/user_settings`)
     .set('Authorization', token)
     .then((res) => res.body.data);
 };
@@ -284,7 +284,7 @@ export const updateUserSettings = async (
   }
 
   return request
-    .put('${base}/api/user_settings')
+    .put(`${base}/api/user_settings`)
     .set('Authorization', token)
     .send({
       user_settings: updates,
