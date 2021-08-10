@@ -4,7 +4,7 @@ import * as API from '../api';
 import {noop} from '../utils';
 
 // TOOD: figure out why ngrok doesn't seem to work here?
-// const SOCKET_URL = 'wss://localhost:4000/socket';
+// const SOCKET_URL = 'ws://localhost:4000/socket';
 const SOCKET_URL = 'wss://alex-papercups-staging.herokuapp.com/socket';
 
 export const SocketContext = React.createContext<{

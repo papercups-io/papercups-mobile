@@ -113,9 +113,13 @@ export class ConversationsProvider extends React.Component<Props, State> {
   }
 
   registerForPushNotifications = async () => {
+    console.debug('Registering push notifications...');
     const token = await registerForPushNotificationsAsync();
+    console.debug('Expo push token:', token);
 
     if (token) {
+      await API.updateUserSettings({expo_push_token: token});
+
       this.setState({pushNotificationToken: token});
       console.log('Successfully registered push notifications!', token);
       this.subscriptions = [
