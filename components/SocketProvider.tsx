@@ -56,10 +56,11 @@ export class SocketProvider extends React.Component<Props, State> {
     this.disconnect();
   }
 
-  createNewSocket = () => {
+  createNewSocket = async () => {
     const {url = SOCKET_URL} = this.props;
+    const token = await API.getAccessToken();
 
-    return new Socket(url, {params: {token: API.getAccessToken()}});
+    return new Socket(url, {params: {token}});
   };
 
   connect = () => {
@@ -94,7 +95,7 @@ export class SocketProvider extends React.Component<Props, State> {
 
       await this.props.refresh(token);
 
-      const socket = this.createNewSocket();
+      const socket = await this.createNewSocket();
 
       this.setState({socket, history: [socket, ...this.state.history]}, () =>
         this.connect()
