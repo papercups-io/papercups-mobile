@@ -5,10 +5,7 @@ import * as Notifications from 'expo-notifications';
 import * as API from '../../api';
 import {Conversation, ConversationPagination, Message, User} from '../../types';
 import {mapConversationsById, mapMessagesByConversationId} from './support';
-import {
-  registerForPushNotificationsAsync,
-  sendPushNotification,
-} from '../notifications/support';
+import {registerForPushNotificationsAsync} from '../notifications/support';
 
 export const ConversationsContext = React.createContext<{
   loading?: boolean;
@@ -270,24 +267,6 @@ export class ConversationsProvider extends React.Component<Props, State> {
     };
   };
 
-  sendNewMessagePushNotification = async (message: Message) => {
-    const {pushNotificationToken} = this.state;
-    console.log('sendNewMessagePushNotification', pushNotificationToken);
-    if (!pushNotificationToken) {
-      return null;
-    }
-
-    const {body, customer_id: customerId} = message;
-
-    if (!!customerId) {
-      return sendPushNotification(pushNotificationToken, {
-        title: 'New message',
-        body,
-        data: message,
-      });
-    }
-  };
-
   handleIncomingMessage = (message: Message) => {
     const {conversation_id: conversationId} = message;
 
@@ -300,8 +279,6 @@ export class ConversationsProvider extends React.Component<Props, State> {
         ],
       },
     });
-
-    return this.sendNewMessagePushNotification(message);
   };
 
   handleNewConversation = async (conversationId: string) => {
