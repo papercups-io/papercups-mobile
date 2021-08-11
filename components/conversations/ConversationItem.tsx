@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  TouchableHighlight,
-  View,
-} from 'react-native';
-import tailwind from 'tailwind-rn';
+import {Image, Text, TouchableHighlight, View} from 'react-native';
+import tailwind, {getColor} from 'tailwind-rn';
 
 import {getColorByUuid} from '../../utils';
 import {formatLastSentAt} from './support';
@@ -33,7 +27,10 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
   const color = getColorByUuid(customerId);
 
   return (
-    <TouchableHighlight onPress={() => onSelectConversation(item)}>
+    <TouchableHighlight
+      underlayColor={getColor('gray-300')}
+      onPress={() => onSelectConversation(item)}
+    >
       <View
         style={tailwind(
           'flex-row p-3 border-b border-gray-100 items-center bg-white'

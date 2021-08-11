@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import {Icon} from 'react-native-elements/dist/icons/Icon';
 import tailwind from 'tailwind-rn';
 
 import {RootStackParamList} from '../types';
 import ConversationItem from '../components/conversations/ConversationItem';
 import {useConversations} from '../components/conversations/ConversationsProvider';
 import {sleep} from '../utils';
+import {updateConversation} from '../api';
 
 type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 
@@ -40,6 +42,17 @@ export default function ConversationsScreen({navigation}: Props) {
     setRefreshing(false);
   };
 
+  const handleCloseConversation = async (item: any) => {
+    try {
+      const {id: conversationId} = item;
+      await updateConversation(conversationId, {
+        conversation: {status: 'closed'},
+      });
+    } catch (error) {
+      console.error('Failed to close conversation', error);
+    }
+  };
+
   const handleLoadMoreConversations = async () => {
     console.log('Loading more conversations:', pagination);
 
@@ -62,12 +75,12 @@ export default function ConversationsScreen({navigation}: Props) {
       <View style={tailwind('h-full')}>
         <TouchableOpacity
           activeOpacity={0.5}
-          onPress={() => console.log('Tapped on', item)}
+          onPress={() => handleCloseConversation(item)}
           style={tailwind(
-            'h-full bg-gray-200 self-end justify-center items-center px-5'
+            'h-full bg-green-400 self-end justify-center items-center px-5'
           )}
         >
-          <Text>Close</Text>
+          <Icon name="check" type="feather" color="white" />
         </TouchableOpacity>
       </View>
     );
