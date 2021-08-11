@@ -14,7 +14,6 @@ import {ColorSchemeName, KeyboardAvoidingView, Platform} from 'react-native';
 import tailwind from 'tailwind-rn';
 
 import {RootStackParamList} from '../types';
-import * as API from '../api';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import ChatScreen from '../screens/ChatScreen';
 import LinkingConfiguration from './LinkingConfiguration';
@@ -23,7 +22,6 @@ import LoginScreen from '../screens/LoginScreen';
 import {useAuth} from '../components/AuthProvider';
 import SocketProvider, {SocketContext} from '../components/SocketProvider';
 import {ConversationsProvider} from '../components/conversations/ConversationsProvider';
-import {AppState} from 'react-native';
 
 export default function Navigation({
   colorScheme,
@@ -51,27 +49,6 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   const auth = useAuth();
-
-  // Attempt to auto-refresh the access token whenever the state becomes active again
-  const onAppStateChange = async (state: string) => {
-    if (state !== 'active') {
-      return;
-    }
-
-    const token = await API.getRefreshToken();
-
-    if (token) {
-      await auth.refresh(token);
-    }
-  };
-
-  React.useEffect(() => {
-    AppState.addEventListener('change', onAppStateChange);
-
-    return () => {
-      AppState.removeEventListener('change', onAppStateChange);
-    };
-  }, []);
 
   if (auth.loading) {
     // TODO: fix splash screen
