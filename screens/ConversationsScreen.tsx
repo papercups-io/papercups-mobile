@@ -19,7 +19,6 @@ type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 
 export default function ConversationsScreen({navigation}: Props) {
   const [isRefreshing, setRefreshing] = React.useState(false);
-  const [openRows, setOpenRows] = React.useState<{[key: string]: boolean}>({});
   const {
     fetchConversations,
     pagination,
