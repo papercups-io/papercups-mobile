@@ -12,6 +12,7 @@ export const ConversationsContext = React.createContext<{
   conversations: Array<Conversation>;
   currentUser: User | null;
   pagination: ConversationPagination;
+  reconnect: () => Promise<void>;
   fetchConversations: (
     query?: Record<string, any>
   ) => Promise<API.ConversationsListResponse>;
@@ -29,6 +30,7 @@ export const ConversationsContext = React.createContext<{
     limit: null,
     total: null,
   },
+  reconnect: () => Promise.resolve(),
   fetchConversations: () =>
     Promise.resolve({
       data: [],
@@ -48,6 +50,7 @@ export const useConversations = () => useContext(ConversationsContext);
 type Props = {socket: Socket} & React.PropsWithChildren<{}>;
 type State = {
   loading: boolean;
+  connecting: boolean;
   currentUser: User | null;
   pushNotificationToken: string | null;
   conversationIds: Array<string>;
@@ -65,6 +68,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
 
     this.state = {
       loading: true,
+      connecting: false,
       currentUser: null,
       pushNotificationToken: null,
       conversationIds: [],
@@ -104,6 +108,20 @@ export class ConversationsProvider extends React.Component<Props, State> {
     await this.registerForPushNotifications();
   };
 
+  reconnect = async () => {
+    const {currentUser} = this.state;
+    const accountId = currentUser?.account_id;
+
+    if (accountId) {
+      return this.connect(accountId);
+    } else {
+      console.error(
+        'Cannot reconnect until current user is available:',
+        this.state
+      );
+    }
+  };
+
   disconnect() {
     this.leaveNotificationsChannel();
     this.removePushNotificationListeners();
@@ -141,10 +159,17 @@ export class ConversationsProvider extends React.Component<Props, State> {
   };
 
   joinNotificationsChannel = (accountId: string) => {
+    if (this.state.connecting) {
+      console.debug('Alreading connecting to channel... Skipping for now.');
+
+      return;
+    }
+
+    this.setState({connecting: true});
+
     if (this.channel && this.channel.leave) {
       console.debug(
-        'Channel already exists. Leaving channel before connecting',
-        this.channel
+        'Channel already exists. Leaving channel before connecting...'
       );
       this.channel.leave(); // TODO: what's the best practice here?
     }
@@ -161,15 +186,32 @@ export class ConversationsProvider extends React.Component<Props, State> {
       this.handleConversationUpdated(id, updates)
     );
 
+    this.channel.onError(() => {
+      console.error('Error connecting to notification channel.');
+      console.error('Attempting reconnect after 5s...');
+
+      setTimeout(() => this.connect(accountId), 5000);
+    });
+
     this.channel
       .join()
-      .receive('ok', (res) => {
-        console.debug('Joined channel successfully');
+      .receive('ok', (data) => {
+        console.debug('Joined channel successfully:', data);
+
+        this.setState({connecting: false});
       })
       .receive('error', (err) => {
-        console.error('Unable to join channel', err);
-        // TODO: double check that this works (retries after 10s)
-        setTimeout(() => this.connect(accountId), 10000);
+        console.error('Unable to join channel:', err);
+        console.error('Attempting reconnect after 5s...');
+        // TODO: double check that this works (retries after 5s)
+        setTimeout(() => this.connect(accountId), 5000);
+
+        this.setState({connecting: false});
+      })
+      .receive('timeout', (data) => {
+        console.error('Connection to channel timed out:', data);
+
+        this.setState({connecting: false});
       });
   };
 
@@ -338,6 +380,8 @@ export class ConversationsProvider extends React.Component<Props, State> {
       return;
     }
 
+    console.log('Attempting to send message to channel', message);
+
     this.channel.push('shout', {
       ...message,
       // TODO: figure out what to do here
@@ -356,6 +400,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
           currentUser,
           conversations,
           pagination,
+          reconnect: this.reconnect,
           fetchConversations: this.fetchConversations,
           markConversationAsRead: this.markConversationAsRead,
           getConversationById: this.getConversationById,
