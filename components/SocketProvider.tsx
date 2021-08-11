@@ -1,5 +1,6 @@
 import React, {useContext} from 'react';
 import {Socket} from 'phoenix';
+import throttle from 'lodash/throttle';
 import * as API from '../api';
 import {noop} from '../utils';
 
@@ -76,12 +77,16 @@ export class SocketProvider extends React.Component<Props, State> {
       console.debug(`Socket successfully closed!`);
     });
 
-    socket.onError(() => {
-      console.error(
-        `Error connecting to socket. Try refreshing the page.`,
-        socket
-      );
-    });
+    socket.onError(
+      throttle(() => {
+        console.error(
+          `Error connecting to socket. Try refreshing the app.`,
+          socket
+        );
+
+        this.reconnect();
+      }, 30000)
+    );
   };
 
   reconnect = () => {

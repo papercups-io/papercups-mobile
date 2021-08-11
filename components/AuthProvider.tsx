@@ -79,6 +79,8 @@ export class AuthProvider extends React.Component<Props, State> {
       () => this.refresh(nextRefreshToken),
       AUTH_SESSION_TTL
     );
+
+    return tokens;
   };
 
   handleClearAuth = () => {
