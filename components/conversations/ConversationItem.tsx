@@ -1,5 +1,11 @@
 import React from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import {
+  Image,
+  Text,
+  TouchableOpacity,
+  TouchableHighlight,
+  View,
+} from 'react-native';
 import tailwind from 'tailwind-rn';
 
 import {getColorByUuid} from '../../utils';
@@ -27,12 +33,11 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
   const color = getColorByUuid(customerId);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.5}
-      onPress={() => onSelectConversation(item)}
-    >
+    <TouchableHighlight onPress={() => onSelectConversation(item)}>
       <View
-        style={tailwind('flex-row p-3 border-b border-gray-100 items-center')}
+        style={tailwind(
+          'flex-row p-3 border-b border-gray-100 items-center bg-white'
+        )}
       >
         {avatarUrl ? (
           <Image
@@ -69,6 +74,6 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </TouchableHighlight>
   );
 }

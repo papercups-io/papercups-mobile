@@ -1,12 +1,13 @@
 import * as React from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
-  FlatList,
   Text,
   SafeAreaView,
   View,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
+import {SwipeListView} from 'react-native-swipe-list-view';
 import tailwind from 'tailwind-rn';
 
 import {RootStackParamList} from '../types';
@@ -18,6 +19,7 @@ type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 
 export default function ConversationsScreen({navigation}: Props) {
   const [isRefreshing, setRefreshing] = React.useState(false);
+  const [openRows, setOpenRows] = React.useState<{[key: string]: boolean}>({});
   const {
     fetchConversations,
     pagination,
@@ -56,6 +58,22 @@ export default function ConversationsScreen({navigation}: Props) {
     );
   };
 
+  const renderHiddenItem = ({item}: any) => {
+    return (
+      <View style={tailwind('h-full')}>
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={() => console.log('Tapped on', item)}
+          style={tailwind(
+            'h-full bg-gray-200 self-end justify-center items-center px-5'
+          )}
+        >
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const displayed = conversations.filter((c) => c.status === 'open');
 
   return (
@@ -64,12 +82,15 @@ export default function ConversationsScreen({navigation}: Props) {
         <Text style={tailwind('font-bold text-lg')}>Conversations</Text>
       </View>
 
-      <FlatList
+      <SwipeListView
+        useFlatList={true}
         refreshing={isRefreshing}
         onRefresh={handleRefreshConversations}
         keyboardShouldPersistTaps="handled"
         data={displayed}
         renderItem={renderItem}
+        renderHiddenItem={renderHiddenItem}
+        rightOpenValue={-75}
         onEndReached={handleLoadMoreConversations}
         onEndReachedThreshold={0.01}
         onMomentumScrollBegin={(...args) => {
