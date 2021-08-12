@@ -117,7 +117,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
       await this.connect(accountId);
       await this.fetchConversations({status: 'open'});
     } else {
-      logger.error(
+      logger.critical(
         'Cannot reconnect until current user is available:',
         this.state
       );
@@ -206,7 +206,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
       .receive('error', (err) => {
         this.setState({connecting: false});
 
-        logger.error('Unable to join channel:', err);
+        logger.critical('Unable to join channel:', err);
         logger.error('Attempting reconnect after 1s...');
         // TODO: double check that this works (retries after 1s)
         setTimeout(() => this.reconnect(), 1000);
@@ -214,7 +214,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
       .receive('timeout', (data) => {
         this.setState({connecting: false});
 
-        logger.error('Connection to channel timed out:', data);
+        logger.critical('Connection to channel timed out:', data);
         logger.error('Attempting reconnect after 1s...');
         // TODO: double check that this works (retries after 1s)
         setTimeout(() => this.reconnect(), 1000);
@@ -256,7 +256,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
 
       return result;
     } catch (err) {
-      logger.error('Failed to fetch conversations:', err);
+      logger.critical('Failed to fetch conversations:', err);
 
       throw err;
     }

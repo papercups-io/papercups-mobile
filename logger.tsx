@@ -53,11 +53,14 @@ const logger = {
 
   warn(...args: any) {
     console.warn(...args);
-    // TODO: remove after testing
-    alert('Warning', args);
   },
 
   error(...args: any) {
+    // TODO: capture these errors in Sentry?
+    console.error(...args);
+  },
+
+  critical(...args: any) {
     // TODO: capture these errors in Sentry?
     console.error(...args);
     // TODO: remove after testing
