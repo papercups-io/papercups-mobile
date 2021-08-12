@@ -66,6 +66,7 @@ const MessageAttachment = ({attachment}: {attachment: Attachment}) => {
 
   if (contentType.startsWith('image')) {
     // TODO: figure out best way to render image attachments
+    // TODO: investigate https://github.com/huiseoul/react-native-fit-image
     return (
       <Image
         key={id}
