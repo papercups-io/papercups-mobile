@@ -110,7 +110,7 @@ export const ChatMessage = ({
           <Text style={tailwind('text-white text-base')}>{body}</Text>
 
           {attachments.map((attachment) => (
-            <MessageAttachment attachment={attachment} />
+            <MessageAttachment key={attachment.id} attachment={attachment} />
           ))}
         </View>
       </View>
@@ -131,7 +131,7 @@ export const ChatMessage = ({
             <Text style={tailwind('text-base')}>{body}</Text>
 
             {attachments.map((attachment) => (
-              <MessageAttachment attachment={attachment} />
+              <MessageAttachment key={attachment.id} attachment={attachment} />
             ))}
           </View>
         </View>

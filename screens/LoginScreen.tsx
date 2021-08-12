@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import tailwind from 'tailwind-rn';
 import {useAuth} from '../components/AuthProvider';
-import logger from '../logger';
 import {formatServerError, sleep} from '../utils';
 
 export default function LoginScreen() {
@@ -32,9 +31,8 @@ export default function LoginScreen() {
       const formatted = formatServerError(err);
       console.error('Failed to login!', err);
       setErrorMessage(formatted);
+      setPending(false);
     }
-
-    setPending(false);
   };
 
   return (

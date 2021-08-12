@@ -17,6 +17,11 @@ export const ConversationsContext = React.createContext<{
   fetchConversations: (
     query?: Record<string, any>
   ) => Promise<API.ConversationsListResponse>;
+  fetchConversationById: (id: string) => Promise<Conversation | null>;
+  updateConversationById: (
+    id: string,
+    updates: Record<any, any>
+  ) => Promise<Conversation | null>;
   getConversationById: (id: string) => Conversation | null;
   getMessagesByConversationId: (id: string) => Array<Message>;
   markConversationAsRead: (id: string) => void;
@@ -40,6 +45,8 @@ export const ConversationsContext = React.createContext<{
       limit: null,
       total: null,
     }),
+  fetchConversationById: () => Promise.resolve(null),
+  updateConversationById: () => Promise.resolve(null),
   getConversationById: () => null,
   getMessagesByConversationId: () => [],
   markConversationAsRead: () => null,
@@ -227,6 +234,28 @@ export class ConversationsProvider extends React.Component<Props, State> {
     }
   };
 
+  updateConversationState = (conversation: Conversation) => {
+    const {id, messages = []} = conversation;
+
+    const {
+      conversationIds = [],
+      conversationsById = {},
+      messagesByConversationId = {},
+    } = this.state;
+
+    this.setState({
+      conversationIds: [...new Set([...conversationIds, id])],
+      conversationsById: {
+        ...conversationsById,
+        [id]: conversation,
+      },
+      messagesByConversationId: {
+        ...messagesByConversationId,
+        [id]: messages,
+      },
+    });
+  };
+
   fetchConversations = async (
     query: Record<string, any> = {status: 'open'}
   ) => {
@@ -257,6 +286,43 @@ export class ConversationsProvider extends React.Component<Props, State> {
       return result;
     } catch (err) {
       logger.critical('Failed to fetch conversations:', err);
+
+      throw err;
+    }
+  };
+
+  fetchConversationById = async (conversationId: string) => {
+    try {
+      const conversation = await API.fetchConversation(conversationId);
+      this.updateConversationState(conversation);
+
+      return conversation;
+    } catch (err) {
+      logger.critical('Failed to fetch conversation:', conversationId, err);
+
+      throw err;
+    }
+  };
+
+  updateConversationById = async (
+    conversationId: string,
+    updates: Record<any, any>
+  ) => {
+    try {
+      const conversation = await API.updateConversation(
+        conversationId,
+        updates
+      );
+      this.updateConversationState(conversation);
+
+      return conversation;
+    } catch (err) {
+      logger.critical(
+        'Failed to update conversation:',
+        conversationId,
+        updates,
+        err
+      );
 
       throw err;
     }
@@ -414,6 +480,8 @@ export class ConversationsProvider extends React.Component<Props, State> {
           pagination,
           reconnect: this.reconnect,
           fetchConversations: this.fetchConversations,
+          fetchConversationById: this.fetchConversationById,
+          updateConversationById: this.updateConversationById,
           markConversationAsRead: this.markConversationAsRead,
           getConversationById: this.getConversationById,
           getMessagesByConversationId: this.getMessagesByConversationId,
