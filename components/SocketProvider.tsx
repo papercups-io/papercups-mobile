@@ -3,6 +3,7 @@ import {Socket} from 'phoenix';
 import throttle from 'lodash/throttle';
 import * as API from '../api';
 import {noop} from '../utils';
+import logger from '../logger';
 
 // TOOD: figure out why ngrok doesn't seem to work here?
 // const SOCKET_URL = 'ws://localhost:4000/socket';
@@ -79,7 +80,7 @@ export class SocketProvider extends React.Component<Props, State> {
 
     socket.onError(
       throttle(() => {
-        console.error(
+        logger.error(
           `Error connecting to socket. Try refreshing the app.`,
           socket
         );
