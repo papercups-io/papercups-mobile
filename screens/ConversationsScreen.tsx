@@ -94,6 +94,8 @@ export default function ConversationsScreen({navigation}: Props) {
     );
   };
 
+  // TODO: smooth this out? See:
+  // https://github.com/jemise111/react-native-swipe-list-view/blob/master/SwipeListExample/examples/swipe_to_delete.js
   const handleSwipeValueChange = async (data: {
     key: string;
     value: number;
@@ -130,13 +132,10 @@ export default function ConversationsScreen({navigation}: Props) {
           console.log('onMomentumScrollBegin');
         }}
         onRefresh={handleRefreshConversations}
-        onSwipeValueChange={handleSwipeValueChange}
-        previewOpenDelay={3000}
-        previewOpenValue={-40}
+        rightOpenValue={-96}
         refreshing={isRefreshing}
         renderHiddenItem={renderHiddenItem}
         renderItem={renderItem}
-        rightOpenValue={-Dimensions.get('window').width}
         useFlatList={true}
         ListFooterComponent={
           displayed.length > 50 ? (
