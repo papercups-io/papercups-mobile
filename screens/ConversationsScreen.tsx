@@ -1,11 +1,12 @@
 import * as React from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {
-  Text,
-  SafeAreaView,
-  View,
   ActivityIndicator,
+  Dimensions,
+  SafeAreaView,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
 import {Icon} from 'react-native-elements/dist/icons/Icon';
@@ -42,10 +43,9 @@ export default function ConversationsScreen({navigation}: Props) {
     setRefreshing(false);
   };
 
-  const handleCloseConversation = async (item: any) => {
+  const closeConversation = async (id: string) => {
     try {
-      const {id: conversationId} = item;
-      await updateConversation(conversationId, {
+      await updateConversation(id, {
         conversation: {status: 'closed'},
       });
     } catch (error) {
@@ -72,18 +72,38 @@ export default function ConversationsScreen({navigation}: Props) {
 
   const renderHiddenItem = ({item}: any) => {
     return (
-      <View style={tailwind('h-full')}>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => handleCloseConversation(item)}
-          style={tailwind(
-            'h-full bg-green-400 self-end justify-center items-center px-5'
-          )}
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={() => closeConversation(item.id)}
+        style={tailwind('h-full bg-green-400')}
+      >
+        <View
+          style={[
+            tailwind(
+              'h-full bg-green-400 self-end justify-center items-center px-5'
+            ),
+            {width: 80},
+          ]}
         >
           <Icon name="check" type="feather" color="white" />
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
     );
+  };
+
+  const handleSwipeValueChange = async (data: {
+    key: string;
+    value: number;
+    direction: 'left' | 'right';
+    isOpen: boolean;
+  }) => {
+    const {key: conversationId, value} = data;
+    const swipeThreshold = -Dimensions.get('window').width;
+    const isElementSwipedOffScreen = value < swipeThreshold;
+
+    if (isElementSwipedOffScreen) {
+      await closeConversation(conversationId);
+    }
   };
 
   const displayed = conversations.filter((c) => c.status === 'open');
@@ -95,22 +115,26 @@ export default function ConversationsScreen({navigation}: Props) {
       </View>
 
       <SwipeListView
-        useFlatList={true}
-        refreshing={isRefreshing}
-        onRefresh={handleRefreshConversations}
-        keyboardShouldPersistTaps="handled"
         data={displayed}
-        renderItem={renderItem}
-        renderHiddenItem={renderHiddenItem}
-        rightOpenValue={-75}
+        disableRightSwipe={true}
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={(item, index) => {
+          return item.id;
+        }}
         onEndReached={handleLoadMoreConversations}
         onEndReachedThreshold={0.01}
         onMomentumScrollBegin={(...args) => {
           console.log('onMomentumScrollBegin');
         }}
-        keyExtractor={(item, index) => {
-          return item.id;
-        }}
+        onRefresh={handleRefreshConversations}
+        onSwipeValueChange={handleSwipeValueChange}
+        previewOpenDelay={3000}
+        previewOpenValue={-40}
+        refreshing={isRefreshing}
+        renderHiddenItem={renderHiddenItem}
+        renderItem={renderItem}
+        rightOpenValue={-Dimensions.get('window').width}
+        useFlatList={true}
         ListFooterComponent={
           displayed.length > 50 ? (
             <View style={tailwind('p-4 items-center')}>
