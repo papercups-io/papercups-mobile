@@ -23,9 +23,10 @@ type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 export default function ConversationsScreen({navigation}: Props) {
   const [isRefreshing, setRefreshing] = React.useState(false);
   const {
-    fetchConversations,
     pagination,
     conversations = [],
+    reconnect,
+    fetchConversations,
   } = useConversations();
 
   const handleSelectConversation = (item: any) => {
@@ -38,6 +39,7 @@ export default function ConversationsScreen({navigation}: Props) {
     setRefreshing(true);
 
     await fetchConversations({status: 'open'});
+    await reconnect();
     await sleep(400);
 
     setRefreshing(false);

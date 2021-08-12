@@ -13,9 +13,9 @@ import * as React from 'react';
 import {ColorSchemeName, KeyboardAvoidingView, Platform} from 'react-native';
 import tailwind from 'tailwind-rn';
 
+import {RootStackParamList} from '../types';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import ChatScreen from '../screens/ChatScreen';
-import {RootStackParamList} from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import ConversationsScreen from '../screens/ConversationsScreen';
 import LoginScreen from '../screens/LoginScreen';

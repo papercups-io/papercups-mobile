@@ -14,17 +14,21 @@ import {
 import ChatHeader from '../components/chat/ChatHeader';
 import {ChatMessage, Avatar, EmptyAvatar} from '../components/chat/ChatMessage';
 import ChatFooter from '../components/chat/ChatFooter';
+import {sleep} from '../utils';
 
 type Props = StackScreenProps<RootStackParamList, 'Chat'> & {};
 
 export default function ChatScreen({route, navigation}: Props) {
   const {
     currentUser,
+    reconnect,
+    fetchConversations,
     getConversationById,
     getMessagesByConversationId,
     markConversationAsRead,
     sendNewMessage,
   } = useConversations();
+  const [isRefreshing, setRefreshing] = React.useState(false);
   const {conversationId} = route.params;
   const conversation = getConversationById(conversationId);
   const messages = getMessagesByConversationId(conversationId);
@@ -46,6 +50,16 @@ export default function ChatScreen({route, navigation}: Props) {
       return markConversationAsRead(conversationId);
     }
   }, [messages.length]);
+
+  const handleRefreshChat = async () => {
+    setRefreshing(true);
+
+    await fetchConversations({status: 'open'});
+    await reconnect();
+    await sleep(400);
+
+    setRefreshing(false);
+  };
 
   const handleSendMessage = (message: string) => {
     return sendNewMessage({body: message, conversation_id: conversationId});
@@ -99,7 +113,8 @@ export default function ChatScreen({route, navigation}: Props) {
       <SafeAreaView style={tailwind('flex-1 bg-white')}>
         <View style={tailwind('flex-1')}>
           <SectionList
-            // style={tailwind('py-3')}
+            refreshing={isRefreshing}
+            onRefresh={handleRefreshChat}
             contentContainerStyle={tailwind('py-3')}
             keyboardShouldPersistTaps="never"
             scrollEventThrottle={16}
