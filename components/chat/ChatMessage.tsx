@@ -2,7 +2,7 @@ import * as React from 'react';
 import {View, Text, Image, Dimensions} from 'react-native';
 import tailwind from 'tailwind-rn';
 
-import {Message, User} from '../../types';
+import {Attachment, Message, User} from '../../types';
 import {getColorByUuid} from '../../utils';
 import {getSenderIdentifier, getSenderProfilePhoto} from './support';
 
@@ -61,6 +61,29 @@ export const Avatar = ({
   );
 };
 
+const MessageAttachment = ({attachment}: {attachment: Attachment}) => {
+  const {id, content_type: contentType, file_url: uri} = attachment;
+
+  if (contentType.startsWith('image')) {
+    // TODO: figure out best way to render image attachments
+    return (
+      <Image
+        key={id}
+        style={{
+          ...tailwind('mt-2 bg-gray-100 rounded-lg'),
+          ...{width: '80%', height: undefined, aspectRatio: 1},
+        }}
+        resizeMode="contain"
+        source={{uri}}
+      ></Image>
+    );
+  } else {
+    // TODO: how should we render non-image attachments?
+
+    return null;
+  }
+};
+
 export const ChatMessage = ({
   item,
   currentUser,
@@ -85,24 +108,9 @@ export const ChatMessage = ({
         >
           <Text style={tailwind('text-white text-base')}>{body}</Text>
 
-          {attachments.map((attachment) => {
-            const {id, content_type: contentType, file_url: uri} = attachment;
-
-            if (contentType.startsWith('image')) {
-              // TODO: figure out best way to render image attachments
-              return (
-                <Image
-                  key={id}
-                  style={{
-                    ...tailwind('mt-2 bg-gray-100 rounded-lg'),
-                    ...{width: '80%', height: undefined, aspectRatio: 1},
-                  }}
-                  resizeMode="contain"
-                  source={{uri}}
-                ></Image>
-              );
-            }
-          })}
+          {attachments.map((attachment) => (
+            <MessageAttachment attachment={attachment} />
+          ))}
         </View>
       </View>
     );
@@ -120,6 +128,10 @@ export const ChatMessage = ({
             style={tailwind('py-2 px-3 bg-gray-100 mr-6 rounded-lg self-start')}
           >
             <Text style={tailwind('text-base')}>{body}</Text>
+
+            {attachments.map((attachment) => (
+              <MessageAttachment attachment={attachment} />
+            ))}
           </View>
         </View>
       </View>

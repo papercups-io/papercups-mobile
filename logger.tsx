@@ -1,15 +1,19 @@
 import {Alert} from 'react-native';
 
 const stringify = (data: any) => {
-  if (data instanceof Error) {
-    return data.toString();
-  } else if (typeof data === 'object') {
-    return JSON.stringify(data, null, 2);
-  } else if (typeof data === 'string') {
-    return data;
-  }
+  try {
+    if (data instanceof Error) {
+      return data.toString();
+    } else if (typeof data === 'object') {
+      return JSON.stringify(data, null, 2);
+    } else if (typeof data === 'string') {
+      return data;
+    }
 
-  return String(data);
+    return String(data);
+  } catch (e) {
+    return String(data);
+  }
 };
 
 const alert = (prefix: string, args: Array<any>) => {

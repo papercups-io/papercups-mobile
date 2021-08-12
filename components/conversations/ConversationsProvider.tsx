@@ -190,10 +190,10 @@ export class ConversationsProvider extends React.Component<Props, State> {
 
     this.channel.onError(() => {
       logger.error(
-        'Error connecting to notification channel. Attempting reconnect after 2s...'
+        'Error connecting to notification channel. Attempting reconnect after 1s...'
       );
 
-      setTimeout(() => this.reconnect(), 2000);
+      setTimeout(() => this.reconnect(), 1000);
     });
 
     this.channel
@@ -204,17 +204,20 @@ export class ConversationsProvider extends React.Component<Props, State> {
         this.setState({connecting: false});
       })
       .receive('error', (err) => {
-        logger.error('Unable to join channel:', err);
-        logger.error('Attempting reconnect after 2s...');
-        // TODO: double check that this works (retries after 2s)
-        setTimeout(() => this.reconnect(), 2000);
-
         this.setState({connecting: false});
+
+        logger.error('Unable to join channel:', err);
+        logger.error('Attempting reconnect after 1s...');
+        // TODO: double check that this works (retries after 1s)
+        setTimeout(() => this.reconnect(), 1000);
       })
       .receive('timeout', (data) => {
-        logger.error('Connection to channel timed out:', data);
-
         this.setState({connecting: false});
+
+        logger.error('Connection to channel timed out:', data);
+        logger.error('Attempting reconnect after 1s...');
+        // TODO: double check that this works (retries after 1s)
+        setTimeout(() => this.reconnect(), 1000);
       });
   };
 
