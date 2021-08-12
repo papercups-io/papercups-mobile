@@ -16,7 +16,6 @@ import {RootStackParamList} from '../types';
 import ConversationItem from '../components/conversations/ConversationItem';
 import {useConversations} from '../components/conversations/ConversationsProvider';
 import {sleep} from '../utils';
-import {updateConversation} from '../api';
 import logger from '../logger';
 
 type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
@@ -28,6 +27,7 @@ export default function ConversationsScreen({navigation}: Props) {
     conversations = [],
     reconnect,
     fetchConversations,
+    updateConversationById,
   } = useConversations();
 
   const handleSelectConversation = (item: any) => {
@@ -48,7 +48,7 @@ export default function ConversationsScreen({navigation}: Props) {
 
   const closeConversation = async (id: string) => {
     try {
-      await updateConversation(id, {
+      await updateConversationById(id, {
         conversation: {status: 'closed'},
       });
     } catch (error) {

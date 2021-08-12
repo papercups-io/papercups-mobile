@@ -1,5 +1,6 @@
 // export const host = '95e5e8dd9265.ngrok.io';
-export const host = 'alex-papercups-staging.herokuapp.com';
+// export const host = 'alex-papercups-staging.herokuapp.com';
+export const host = 'app.papercups.io';
 
 export const isDev = (hostname: string) => {
   return (
