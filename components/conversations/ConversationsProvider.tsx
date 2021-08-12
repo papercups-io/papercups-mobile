@@ -113,7 +113,8 @@ export class ConversationsProvider extends React.Component<Props, State> {
     const accountId = currentUser?.account_id;
 
     if (accountId) {
-      return this.connect(accountId);
+      await this.connect(accountId);
+      await this.fetchConversations({status: 'open'});
     } else {
       console.error(
         'Cannot reconnect until current user is available:',
@@ -187,10 +188,11 @@ export class ConversationsProvider extends React.Component<Props, State> {
     );
 
     this.channel.onError(() => {
-      console.error('Error connecting to notification channel.');
-      console.error('Attempting reconnect after 5s...');
+      console.error(
+        'Error connecting to notification channel. Attempting reconnect after 5s...'
+      );
 
-      setTimeout(() => this.connect(accountId), 5000);
+      setTimeout(() => this.reconnect(), 5000);
     });
 
     this.channel
@@ -204,7 +206,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
         console.error('Unable to join channel:', err);
         console.error('Attempting reconnect after 5s...');
         // TODO: double check that this works (retries after 5s)
-        setTimeout(() => this.connect(accountId), 5000);
+        setTimeout(() => this.reconnect(), 5000);
 
         this.setState({connecting: false});
       })
