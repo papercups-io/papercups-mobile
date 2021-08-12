@@ -6,6 +6,7 @@ import * as API from '../../api';
 import {Conversation, ConversationPagination, Message, User} from '../../types';
 import {mapConversationsById, mapMessagesByConversationId} from './support';
 import {registerForPushNotificationsAsync} from '../notifications/support';
+import logger from '../../logger';
 
 export const ConversationsContext = React.createContext<{
   loading?: boolean;
@@ -116,7 +117,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
       await this.connect(accountId);
       await this.fetchConversations({status: 'open'});
     } else {
-      console.error(
+      logger.error(
         'Cannot reconnect until current user is available:',
         this.state
       );
@@ -188,11 +189,11 @@ export class ConversationsProvider extends React.Component<Props, State> {
     );
 
     this.channel.onError(() => {
-      console.error(
-        'Error connecting to notification channel. Attempting reconnect after 5s...'
+      logger.error(
+        'Error connecting to notification channel. Attempting reconnect after 2s...'
       );
 
-      setTimeout(() => this.reconnect(), 5000);
+      setTimeout(() => this.reconnect(), 2000);
     });
 
     this.channel
@@ -203,15 +204,15 @@ export class ConversationsProvider extends React.Component<Props, State> {
         this.setState({connecting: false});
       })
       .receive('error', (err) => {
-        console.error('Unable to join channel:', err);
-        console.error('Attempting reconnect after 5s...');
-        // TODO: double check that this works (retries after 5s)
-        setTimeout(() => this.reconnect(), 5000);
+        logger.error('Unable to join channel:', err);
+        logger.error('Attempting reconnect after 2s...');
+        // TODO: double check that this works (retries after 2s)
+        setTimeout(() => this.reconnect(), 2000);
 
         this.setState({connecting: false});
       })
       .receive('timeout', (data) => {
-        console.error('Connection to channel timed out:', data);
+        logger.error('Connection to channel timed out:', data);
 
         this.setState({connecting: false});
       });
@@ -226,30 +227,36 @@ export class ConversationsProvider extends React.Component<Props, State> {
   fetchConversations = async (
     query: Record<string, any> = {status: 'open'}
   ) => {
-    const result = await API.fetchConversations(query);
-    const {data: conversations = [], ...pagination} = result;
-    const {
-      conversationIds = [],
-      conversationsById = {},
-      messagesByConversationId = {},
-    } = this.state;
+    try {
+      const result = await API.fetchConversations(query);
+      const {data: conversations = [], ...pagination} = result;
+      const {
+        conversationIds = [],
+        conversationsById = {},
+        messagesByConversationId = {},
+      } = this.state;
 
-    this.setState({
-      pagination,
-      conversationIds: [
-        ...new Set([...conversationIds, ...conversations.map((c) => c.id)]),
-      ],
-      conversationsById: {
-        ...conversationsById,
-        ...mapConversationsById(conversations),
-      },
-      messagesByConversationId: {
-        ...messagesByConversationId,
-        ...mapMessagesByConversationId(conversations),
-      },
-    });
+      this.setState({
+        pagination,
+        conversationIds: [
+          ...new Set([...conversationIds, ...conversations.map((c) => c.id)]),
+        ],
+        conversationsById: {
+          ...conversationsById,
+          ...mapConversationsById(conversations),
+        },
+        messagesByConversationId: {
+          ...messagesByConversationId,
+          ...mapMessagesByConversationId(conversations),
+        },
+      });
 
-    return result;
+      return result;
+    } catch (err) {
+      logger.error('Failed to fetch conversations:', err);
+
+      throw err;
+    }
   };
 
   getConversationById = (conversationId: string): Conversation | null => {
@@ -258,7 +265,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
     if (!conversation) {
       // TODO: figure out the best way to avoid this... probably needs to be
       // handled on the server where we handle emitting events via channels)
-      console.warn(`Missing conversation in cache for id: ${conversationId}`);
+      logger.warn(`Missing conversation in cache for id: ${conversationId}`);
 
       return null;
     }
@@ -288,7 +295,7 @@ export class ConversationsProvider extends React.Component<Props, State> {
     if (!messages) {
       // TODO: figure out the best way to avoid this... probably needs to be
       // handled on the server where we handle emitting events via channels)
-      console.warn(
+      logger.warn(
         `Missing messages in cache for conversation: ${conversationId}`
       );
 

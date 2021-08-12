@@ -7,23 +7,34 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import tailwind from 'tailwind-rn';
 import {useAuth} from '../components/AuthProvider';
+import logger from '../logger';
+import {formatServerError, sleep} from '../utils';
 
 export default function LoginScreen() {
   const {login} = useAuth();
+  const [pending, setPending] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [error, setErrorMessage] = React.useState<string | null>(null);
 
   const handleLogIn = async () => {
+    setPending(true);
+
     try {
       await login({email, password});
 
       console.log('Logged in!');
     } catch (err) {
-      console.log('Failed to login!', err);
+      const formatted = formatServerError(err);
+      console.error('Failed to login!', err);
+      setErrorMessage(formatted);
     }
+
+    setPending(false);
   };
 
   return (
@@ -62,12 +73,32 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity
-          style={tailwind('w-72 p-2 rounded-lg bg-blue-400 mt-5 items-center')}
+          style={tailwind(
+            `w-72 p-2 rounded-lg bg-blue-400 mt-5 items-center ${
+              pending ? 'bg-opacity-40' : ''
+            }`
+          )}
           activeOpacity={0.4}
+          disabled={pending}
           onPress={handleLogIn}
         >
-          <Text style={tailwind('text-white text-lg')}>Log In</Text>
+          {pending ? (
+            <View style={tailwind('flex-row items-center justify-center')}>
+              <ActivityIndicator color="white" />
+              <Text style={tailwind('ml-2 text-white text-lg')}>
+                Logging in...
+              </Text>
+            </View>
+          ) : (
+            <Text style={tailwind('text-white text-lg')}>Log in</Text>
+          )}
         </TouchableOpacity>
+
+        {error && (
+          <View style={tailwind('mt-8')}>
+            <Text style={tailwind('text-red-500')}>{error}</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

@@ -17,6 +17,7 @@ import ConversationItem from '../components/conversations/ConversationItem';
 import {useConversations} from '../components/conversations/ConversationsProvider';
 import {sleep} from '../utils';
 import {updateConversation} from '../api';
+import logger from '../logger';
 
 type Props = StackScreenProps<RootStackParamList, 'Root'> & {};
 
@@ -51,7 +52,7 @@ export default function ConversationsScreen({navigation}: Props) {
         conversation: {status: 'closed'},
       });
     } catch (error) {
-      console.error('Failed to close conversation', error);
+      logger.error('Failed to close conversation', error);
     }
   };
 

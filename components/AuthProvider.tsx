@@ -2,6 +2,7 @@ import React, {useContext} from 'react';
 
 import Storage, {AUTH_CACHE_KEY} from '../storage';
 import * as API from '../api';
+import logger from '../logger';
 
 export const AuthContext = React.createContext<{
   isAuthenticated: boolean;
@@ -93,7 +94,7 @@ export class AuthProvider extends React.Component<Props, State> {
     return API.renew(refreshToken)
       .then((tokens) => this.handleAuthSuccess(tokens))
       .catch((err) => {
-        console.error('Invalid session:', err);
+        logger.error('Invalid session:', err);
       });
   };
 

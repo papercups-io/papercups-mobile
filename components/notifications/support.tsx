@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import React from 'react';
 import {Text, View, Button, Platform} from 'react-native';
+import logger from '../../logger';
 
 export const init = () => {
   Notifications.setNotificationHandler({
@@ -82,7 +83,7 @@ export async function sendPushNotification(
   })
     .then((res) => res.json())
     .then((result) => console.log('Push notification result:', result))
-    .catch((error) => console.error('Push notification error:', error));
+    .catch((error) => logger.error('Push notification error:', error));
 }
 
 export async function hasNotificationsPermission() {
@@ -107,14 +108,14 @@ export async function registerForPushNotificationsAsync(): Promise<
     const hasPermission = await hasNotificationsPermission();
 
     if (!hasPermission) {
-      console.warn('Failed to get push token for push notification!');
+      logger.warn('Failed to get push token for push notification!');
 
       return null;
     }
 
     token = (await Notifications.getExpoPushTokenAsync()).data;
   } else {
-    console.warn('Must use physical device for push notifications');
+    logger.warn('Must use physical device for push notifications');
   }
 
   if (Platform.OS === 'android') {
