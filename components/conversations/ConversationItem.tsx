@@ -56,14 +56,18 @@ export default function ConversationItem({item, onSelectConversation}: Props) {
             </Text>
           </View>
         )}
-        <View>
+        <View style={tailwind('flex-1')}>
           <Text style={tailwind(`mb-1 text-base ${read ? '' : 'font-bold'}`)}>
             {display}
           </Text>
           <Text
-            style={tailwind(read ? 'text-gray-500' : 'text-gray-700 font-bold')}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={tailwind(
+              `${read ? 'text-gray-500' : 'text-gray-700 font-bold'}`
+            )}
           >
-            {formatted.length > 40
+            {formatted.length > 36
               ? formatted.slice(0, 32).concat('...')
               : formatted}
             {' · '}

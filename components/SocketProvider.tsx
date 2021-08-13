@@ -1,14 +1,17 @@
 import React, {useContext} from 'react';
 import {Socket} from 'phoenix';
 import throttle from 'lodash/throttle';
+
 import * as API from '../api';
 import {noop} from '../utils';
 import logger from '../logger';
+import {isDev} from '../config';
 
 // TOOD: figure out why ngrok doesn't seem to work here?
 // const SOCKET_URL = 'ws://localhost:4000/socket';
-// const SOCKET_URL = 'wss://alex-papercups-staging.herokuapp.com/socket';
-const SOCKET_URL = 'wss://app.papercups.io/socket';
+export const SOCKET_URL = isDev
+  ? 'wss://alex-papercups-staging.herokuapp.com/socket'
+  : 'wss://app.papercups.io/socket';
 
 export const SocketContext = React.createContext<{
   socket: Socket;

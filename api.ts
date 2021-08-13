@@ -12,9 +12,9 @@ import {
   User,
   WidgetSettings,
 } from './types';
-import {host, isDev} from './config';
+import {host, isLocal} from './config';
 
-const isHttp = isDev(host);
+const isHttp = isLocal(host);
 const base = `${isHttp ? 'http://' : 'https://'}${host}`;
 // const base = 'http://localhost:4000';
 
