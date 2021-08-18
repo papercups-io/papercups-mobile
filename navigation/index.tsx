@@ -18,6 +18,7 @@ import NotFoundScreen from '../screens/NotFoundScreen';
 import ChatScreen from '../screens/ChatScreen';
 import LinkingConfiguration from './LinkingConfiguration';
 import ConversationsScreen from '../screens/ConversationsScreen';
+import CustomerDetailsScreen from '../screens/CustomerDetailsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import {useAuth} from '../components/AuthProvider';
 import SocketProvider, {SocketContext} from '../components/SocketProvider';
@@ -81,6 +82,10 @@ function RootNavigator() {
                   component={ConversationsScreen}
                 />
                 <Stack.Screen name="Chat" component={ChatScreen} />
+                <Stack.Screen
+                  name="CustomerDetails"
+                  component={CustomerDetailsScreen}
+                />
 
                 <Stack.Screen
                   name="NotFound"

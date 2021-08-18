@@ -71,6 +71,14 @@ export default function ChatScreen({route, navigation}: Props) {
     navigation.navigate('Conversations');
   };
 
+  const handleHeaderPress = () => {
+    if (conversation != null) {
+      navigation.navigate('CustomerDetails', {
+        customerId: conversation.customer_id,
+      });
+    }
+  };
+
   const renderItem = ({item, section, index}: any) => {
     const {data = []} = section;
     const next = data[index - 1];
@@ -115,6 +123,7 @@ export default function ChatScreen({route, navigation}: Props) {
           <ChatHeader
             conversation={conversation}
             onPressBack={handlePressBack}
+            onPress={handleHeaderPress}
           />
         </SafeAreaView>
       )}
