@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Papercups",
-    "slug": "papercups-mobile",
-    "version": "1.0.9",
+    "slug": "papercups",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -15,9 +15,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "papercups-ios"
