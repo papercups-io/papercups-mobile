@@ -15,6 +15,7 @@ import ChatHeader from '../components/chat/ChatHeader';
 import {ChatMessage, Avatar, EmptyAvatar} from '../components/chat/ChatMessage';
 import ChatFooter from '../components/chat/ChatFooter';
 import {sleep} from '../utils';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type Props = StackScreenProps<RootStackParamList, 'Chat'> & {};
 
@@ -28,6 +29,7 @@ export default function ChatScreen({route, navigation}: Props) {
     markConversationAsRead,
     sendNewMessage,
   } = useConversations();
+  const insets = useSafeAreaInsets();
   const [isRefreshing, setRefreshing] = React.useState(false);
   const {conversationId} = route.params;
   const conversation = getConversationById(conversationId);
@@ -103,7 +105,13 @@ export default function ChatScreen({route, navigation}: Props) {
     <>
       {/* TODO: not sure the best way to have the top fill with the correct background... */}
       {conversation && (
-        <SafeAreaView style={tailwind('flex-none bg-gray-50')}>
+        <SafeAreaView
+          style={{
+            ...tailwind('flex-none bg-gray-50'),
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          }}
+        >
           <ChatHeader
             conversation={conversation}
             onPressBack={handlePressBack}
