@@ -11,6 +11,9 @@ export type RootStackParamList = {
     conversationId: string;
     messages: Array<Message>;
   };
+  CustomerDetails: {
+    customerId: string;
+  };
   NotFound: undefined;
 };
 

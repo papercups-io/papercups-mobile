@@ -13,9 +13,11 @@ dayjs.extend(utc);
 
 export const ChatHeader = ({
   conversation,
+  onPressCustomer,
   onPressBack,
 }: {
   conversation: Conversation;
+  onPressCustomer: () => void;
   onPressBack: () => void;
 }) => {
   const {customer, messages = []} = conversation;
@@ -41,35 +43,40 @@ export const ChatHeader = ({
           />
         </TouchableOpacity>
 
-        {avatarUrl ? (
-          <Image
-            style={{
-              ...tailwind(
-                'mr-3 w-10 h-10 rounded-full items-center justify-center'
-              ),
-            }}
-            source={{
-              uri: avatarUrl,
-            }}
-          />
-        ) : (
-          <View
-            style={{
-              ...tailwind(
-                `mr-3 w-10 h-10 bg-${color}-500 rounded-full items-center justify-center`
-              ),
-            }}
-          >
-            <Text style={tailwind('text-white text-base')}>
-              {display.slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
-        )}
+        <TouchableOpacity
+          onPress={onPressCustomer}
+          style={tailwind('flex-row')}
+        >
+          {avatarUrl ? (
+            <Image
+              style={{
+                ...tailwind(
+                  'mr-3 w-10 h-10 rounded-full items-center justify-center'
+                ),
+              }}
+              source={{
+                uri: avatarUrl,
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                ...tailwind(
+                  `mr-3 w-10 h-10 bg-${color}-500 rounded-full items-center justify-center`
+                ),
+              }}
+            >
+              <Text style={tailwind('text-white text-base')}>
+                {display.slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
+          )}
 
-        <View>
-          <Text style={tailwind('text-base font-medium')}>{display}</Text>
-          <Text style={tailwind('text-gray-500')}>{lastActiveAt}</Text>
-        </View>
+          <View>
+            <Text style={tailwind('text-base font-medium')}>{display}</Text>
+            <Text style={tailwind('text-gray-500')}>{lastActiveAt}</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );

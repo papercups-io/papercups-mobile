@@ -71,6 +71,16 @@ export default function ChatScreen({route, navigation}: Props) {
     navigation.navigate('Conversations');
   };
 
+  const handlePressCustomer = () => {
+    const customerId = conversation && conversation.customer_id;
+
+    if (!customerId) {
+      return;
+    }
+
+    navigation.navigate('CustomerDetails', {customerId});
+  };
+
   const renderItem = ({item, section, index}: any) => {
     const {data = []} = section;
     const next = data[index - 1];
@@ -109,16 +119,18 @@ export default function ChatScreen({route, navigation}: Props) {
           style={{
             ...tailwind('flex-none bg-gray-50'),
             paddingTop: insets.top,
-            paddingBottom: insets.bottom,
           }}
         >
           <ChatHeader
             conversation={conversation}
             onPressBack={handlePressBack}
+            onPressCustomer={handlePressCustomer}
           />
         </SafeAreaView>
       )}
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+      <SafeAreaView
+        style={{...tailwind('flex-1 bg-white'), paddingBottom: insets.bottom}}
+      >
         <View style={tailwind('flex-1')}>
           <SectionList
             refreshing={isRefreshing}
