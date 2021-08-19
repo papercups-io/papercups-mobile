@@ -7,10 +7,6 @@
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 
-const generateConversationUrl = (conversationId: string) => {
-  return `${Linking.makeUrl('/')}messages/${conversationId}`;
-};
-
 export default {
   prefixes: [Linking.makeUrl('/')],
   config: {
@@ -22,7 +18,6 @@ export default {
     },
   },
   async getInitialURL() {
-    // First, you may want to do the default deep link handling
     // Check if app was opened from a deep link
     const initial = await Linking.getInitialURL();
 
@@ -30,13 +25,12 @@ export default {
       return initial;
     }
 
-    // Handle URL from expo push notifications
+    // Handle URL from Expo push notifications
     const response = await Notifications.getLastNotificationResponseAsync();
-    const data = response?.notification.request.content.data;
-    const conversationId = data && data.conversation_id;
+    const url = response?.notification.request.content.data.url;
 
-    if (conversationId && typeof conversationId === 'string') {
-      return generateConversationUrl(conversationId);
+    if (url && typeof url === 'string') {
+      return Linking.makeUrl('/') + url;
     } else {
       return null;
     }
@@ -49,20 +43,15 @@ export default {
     // Listen to incoming links from deep linking
     Linking.addEventListener('url', onReceiveURL);
 
-    // Listen to expo push notifications
+    // Listen to Expo push notifications
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response: Notifications.NotificationResponse) => {
-        // Any custom logic to see whether the URL needs to be handled
-        // ...
+        const url = response.notification.request.content.data.url;
 
-        const data = response.notification.request.content.data;
-        const conversationId = data && data.conversation_id;
+        if (url && typeof url === 'string') {
+          const formatted = Linking.makeUrl('/') + url;
 
-        // Let React Navigation handle the URL
-        if (conversationId && typeof conversationId === 'string') {
-          const url = generateConversationUrl(conversationId);
-
-          listener(url);
+          listener(formatted);
         }
       }
     );
