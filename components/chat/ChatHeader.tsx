@@ -13,11 +13,11 @@ dayjs.extend(utc);
 
 export const ChatHeader = ({
   conversation,
-  onPress,
+  onPressCustomer,
   onPressBack,
 }: {
   conversation: Conversation;
-  onPress: () => void;
+  onPressCustomer: () => void;
   onPressBack: () => void;
 }) => {
   const {customer, messages = []} = conversation;
@@ -43,7 +43,10 @@ export const ChatHeader = ({
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={onPress} style={tailwind('flex-row')}>
+        <TouchableOpacity
+          onPress={onPressCustomer}
+          style={tailwind('flex-row')}
+        >
           {avatarUrl ? (
             <Image
               style={{
