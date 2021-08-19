@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import {SwipeListView} from 'react-native-swipe-list-view';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Icon} from 'react-native-elements/dist/icons/Icon';
 import tailwind from 'tailwind-rn';
 
@@ -29,6 +30,7 @@ export default function ConversationsScreen({navigation}: Props) {
     fetchConversations,
     updateConversationById,
   } = useConversations();
+  const insets = useSafeAreaInsets();
 
   const handleSelectConversation = (item: any) => {
     const {id: conversationId, messages = []} = item;
@@ -114,7 +116,13 @@ export default function ConversationsScreen({navigation}: Props) {
   const displayed = conversations.filter((c) => c.status === 'open');
 
   return (
-    <SafeAreaView style={tailwind('h-full bg-white')}>
+    <SafeAreaView
+      style={{
+        ...tailwind('h-full bg-white'),
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
+    >
       <View style={tailwind('p-4 items-center')}>
         <Text style={tailwind('font-bold text-lg')}>Conversations</Text>
       </View>

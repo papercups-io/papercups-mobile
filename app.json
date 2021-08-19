@@ -2,7 +2,7 @@
   "expo": {
     "name": "Papercups",
     "slug": "papercups-mobile",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -21,10 +21,12 @@
       "bundleIdentifier": "papercups-ios"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.reichertjalex.papercupsmobile"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
