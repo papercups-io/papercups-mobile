@@ -117,7 +117,6 @@ export default function ChatScreen({route, navigation}: Props) {
           style={{
             ...tailwind('flex-none bg-gray-50'),
             paddingTop: insets.top,
-            paddingBottom: insets.bottom,
           }}
         >
           <ChatHeader
@@ -127,7 +126,9 @@ export default function ChatScreen({route, navigation}: Props) {
           />
         </SafeAreaView>
       )}
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+      <SafeAreaView
+        style={{...tailwind('flex-1 bg-white'), paddingBottom: insets.bottom}}
+      >
         <View style={tailwind('flex-1')}>
           <SectionList
             refreshing={isRefreshing}

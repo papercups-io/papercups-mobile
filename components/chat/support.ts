@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
-import {Account, Conversation, Customer, Message, User} from '../../types';
+import {Account, Customer, Message, User} from '../../types';
 
 dayjs.extend(utc);
 

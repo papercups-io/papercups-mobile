@@ -12,13 +12,13 @@ export default function useCustomer(
   const [isFetching, setIsFetching] = React.useState(true);
 
   React.useEffect(() => {
-    API.fetchCustomer(customerId, {
-      expand: options.expand,
-    })
+    setIsFetching(true);
+
+    API.fetchCustomer(customerId, options)
       .then((customer) => setCustomer(customer))
       .catch((error) => setError(error))
       .finally(() => setIsFetching(false));
-  });
+  }, [customerId]);
 
   return {customer, isFetching, error};
 }
