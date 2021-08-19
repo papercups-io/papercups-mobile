@@ -150,11 +150,11 @@ export class ConversationsProvider extends React.Component<Props, State> {
         ...this.subscriptions,
         // This listener is fired whenever a notification is received while the app is foregrounded
         Notifications.addNotificationReceivedListener((notification) => {
-          // console.log('addNotificationReceivedListener', notification);
+          console.log('addNotificationReceivedListener', notification);
         }),
         // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
         Notifications.addNotificationResponseReceivedListener((response) => {
-          // console.log('addNotificationResponseReceivedListener', response);
+          console.log('addNotificationResponseReceivedListener', response);
         }),
       ];
     }
