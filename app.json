@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Papercups",
-    "slug": "papercups",
+    "slug": "papercups-mobile",
     "version": "1.0.10",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -21,6 +21,7 @@
       "bundleIdentifier": "papercups-ios"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
